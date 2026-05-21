@@ -103,14 +103,18 @@ async def get_cf_clearance(
                 
                 # 获取所有 cookies
                 cookies = await browser.cookies()
-                
+
                 cf_cookies = {}
                 for cookie in cookies:
                     cookie_name = cookie.get("name")
                     cookie_value = cookie.get("value")
-                    print(f"  📚 Cookie: {cookie_name} (value: {cookie_value[:50] if cookie_value and len(cookie_value) > 50 else cookie_value}...)")
+                    cookie_domain = cookie.get("domain", "")
+                    print(f"  📚 Cookie: {cookie_name} (domain: {cookie_domain}, value: {cookie_value[:50] if cookie_value and len(cookie_value) > 50 else cookie_value}...)")
                     if cookie_name in ["cf_clearance", "__cf_bm", "cf_chl_2", "cf_chl_prog"] and cookie_value is not None:
-                        cf_cookies[cookie_name] = cookie_value
+                        cf_cookies[cookie_name] = {
+                            "value": cookie_value,
+                            "domain": cookie_domain.lstrip("."),
+                        }
                 
                 print(f"ℹ️ {account_name}: Got {len(cf_cookies)} Cloudflare cookies")
                 

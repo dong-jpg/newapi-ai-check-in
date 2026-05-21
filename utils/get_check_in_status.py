@@ -9,10 +9,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 from curl_cffi import requests as curl_requests
 
-from utils.http_utils import proxy_resolve, response_resolve
+from utils.http_utils import proxy_resolve, response_resolve, set_cookies_on_session
 from utils.get_headers import get_curl_cffi_impersonate
 
 if TYPE_CHECKING:
@@ -56,7 +57,8 @@ def get_newapi_check_in_status(
     try:
         session = curl_requests.Session(impersonate=impersonate, proxy=http_proxy, timeout=30)
         try:
-            session.cookies.update(cookies)
+            parsed_domain = urlparse(provider_config.origin).netloc
+            set_cookies_on_session(session, cookies, parsed_domain)
             response = session.get(
                 check_in_status_url,
                 headers=headers,

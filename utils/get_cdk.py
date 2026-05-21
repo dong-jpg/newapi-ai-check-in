@@ -22,7 +22,7 @@ from camoufox.async_api import AsyncCamoufox
 from curl_cffi import requests as curl_requests
 
 from utils.browser_utils import take_screenshot, save_page_content_to_file
-from utils.http_utils import proxy_resolve, response_resolve
+from utils.http_utils import proxy_resolve, response_resolve, set_cookies_on_session
 from utils.get_headers import get_curl_cffi_impersonate
 from utils.get_cf_clearance import get_cf_clearance
 
@@ -74,8 +74,8 @@ def get_runawaytime_cdk(
             }
 
             # 设置 cookies
-            session.cookies.update(get_cdk_cookies)
-            session.cookies.set("i18next", "en")
+            set_cookies_on_session(session, get_cdk_cookies, "fuli.hxi.me")
+            session.cookies.set("i18next", "en", domain="fuli.hxi.me")
 
             # ===== 第一部分：签到 =====
             # 先检查签到状态
@@ -712,8 +712,9 @@ async def get_b4u_cdk(
                 }
 
             # 设置 cookies（合并 cf_clearance 和用户 cookies）
-            session.cookies.update(cf_cookies)
-            session.cookies.update(get_cdk_cookies)
+            parsed_domain = urlparse("https://tw.b4u.qzz.io").netloc
+            set_cookies_on_session(session, cf_cookies, parsed_domain)
+            set_cookies_on_session(session, get_cdk_cookies, parsed_domain)
             session.cookies.set("i18next", "en")
 
             # Next.js Server Actions 需要的 next-router-state-tree header

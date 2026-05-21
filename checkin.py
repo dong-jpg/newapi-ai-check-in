@@ -16,7 +16,7 @@ from camoufox.async_api import AsyncCamoufox
 from utils.config import AccountConfig, ProviderConfig
 from utils.browser_utils import parse_cookies, filter_cookies, get_random_user_agent, take_screenshot, aliyun_captcha_check
 from utils.get_cf_clearance import get_cf_clearance
-from utils.http_utils import proxy_resolve, response_resolve
+from utils.http_utils import proxy_resolve, response_resolve, set_cookies_on_session
 from utils.topup import topup
 from utils.get_headers import get_browser_headers, get_curl_cffi_impersonate, print_browser_headers
 from utils.mask_utils import mask_username
@@ -960,8 +960,14 @@ class CheckIn:
             # 打印 cookies 的键和值
             print(f"ℹ️ {self.account_name}: Cookies to be used:")
             for key, value in cookies.items():
-                print(f"  📚 {key}: {value[:50] if len(value) > 50 else value}{'...' if len(value) > 50 else ''}")
-            session.cookies.update(cookies)
+                if isinstance(value, dict):
+                    print(f"  📚 {key}: {value.get('value', '')[:50]}... (domain: {value.get('domain', '')})")
+                else:
+                    print(f"  📚 {key}: {value[:50] if len(value) > 50 else value}{'...' if len(value) > 50 else ''}")
+
+            # 设置 cookies，支持带 domain 的格式
+            parsed_domain = urlparse(self.provider_config.origin).netloc
+            set_cookies_on_session(session, cookies, parsed_domain)
 
             # 使用传入的公用请求头，并添加动态头部
             headers = common_headers.copy()
@@ -1064,7 +1070,8 @@ class CheckIn:
         try:
             # 设置 bypass cookies
             if bypass_cookies:
-                session.cookies.update(bypass_cookies)
+                parsed_domain = urlparse(self.provider_config.origin).netloc
+                set_cookies_on_session(session, bypass_cookies, parsed_domain)
 
             # 使用传入的公用请求头，并添加动态头部
             headers = common_headers.copy()
@@ -1166,7 +1173,8 @@ class CheckIn:
             print(f"ℹ️ {self.account_name}: Using curl_cffi Session with impersonate={impersonate}")
         
         try:
-            session.cookies.update(bypass_cookies)
+            parsed_domain = urlparse(self.provider_config.origin).netloc
+            set_cookies_on_session(session, bypass_cookies, parsed_domain)
 
             # 使用传入的公用请求头，并添加动态头部
             headers = common_headers.copy()
@@ -1329,7 +1337,8 @@ class CheckIn:
             print(f"ℹ️ {self.account_name}: Using curl_cffi Session with impersonate={impersonate}")
         
         try:
-            session.cookies.update(bypass_cookies)
+            parsed_domain = urlparse(self.provider_config.origin).netloc
+            set_cookies_on_session(session, bypass_cookies, parsed_domain)
 
             # 使用传入的公用请求头，并添加动态头部
             headers = common_headers.copy()
@@ -1507,7 +1516,8 @@ class CheckIn:
             print(f"ℹ️ {self.account_name}: Using curl_cffi Session with impersonate={impersonate}")
 
         try:
-            session.cookies.update(bypass_cookies)
+            parsed_domain = urlparse(self.provider_config.origin).netloc
+            set_cookies_on_session(session, bypass_cookies, parsed_domain)
 
             headers = common_headers.copy()
             headers["Content-Type"] = "application/json"
@@ -1711,7 +1721,8 @@ class CheckIn:
             user_agent = common_headers.get("User-Agent", "")
             impersonate = get_curl_cffi_impersonate(user_agent)
             session = curl_requests.Session(impersonate=impersonate, proxy=self.http_proxy_config, timeout=30)
-            session.cookies.update(cookies)
+            parsed_domain = urlparse(self.provider_config.origin).netloc
+            set_cookies_on_session(session, cookies, parsed_domain)
 
             headers = common_headers.copy()
             headers[self.provider_config.api_user_key] = "-1"

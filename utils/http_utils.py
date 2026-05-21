@@ -11,6 +11,27 @@ from urllib.parse import urlparse, urlunparse
 from curl_cffi import requests as curl_requests
 
 
+def set_cookies_on_session(session, cookies: dict, default_domain: str):
+    """设置 cookies 到 session，支持带 domain 的格式
+
+    支持两种 cookie 格式:
+    1. 简单格式: {name: value}
+    2. 带 domain 格式: {name: {"value": ..., "domain": ...}}
+
+    Args:
+        session: curl_cffi Session 对象
+        cookies: cookies 字典
+        default_domain: 默认域名，用于简单格式的 cookies
+    """
+    for key, value in cookies.items():
+        if isinstance(value, dict):
+            cookie_domain = value.get("domain", default_domain)
+            cookie_value = value.get("value", "")
+            session.cookies.set(key, cookie_value, domain=cookie_domain)
+        else:
+            session.cookies.set(key, value, domain=default_domain)
+
+
 def proxy_resolve(proxy_config: dict | None = None) -> str | None:
     """将 proxy_config 转换为代理 URL 字符串
 
