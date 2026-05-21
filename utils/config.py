@@ -531,7 +531,7 @@ class AppConfig:
                 linuxdo_client_id="8w2uZtoWH9AUXrZr1qeCEEmvXLafea3c",
                 linuxdo_auth_path="/api/oauth/linuxdo",
                 aliyun_captcha=False,
-                bypass_method="waf_cookies",
+                bypass_method="cf_clearance",
             ),
             # "agentrouter": ProviderConfig(
             #     name="agentrouter",

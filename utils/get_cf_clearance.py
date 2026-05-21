@@ -70,10 +70,13 @@ async def get_cf_clearance(
                 async with ClickSolver(
                     framework=FrameworkType.CAMOUFOX,
                     page=page,
-                    max_attempts=5,
-                    attempt_delay=3
+                    max_attempts=8,
+                    attempt_delay=5
                 ) as solver:
-                    await page.goto(url, wait_until="networkidle")
+                    try:
+                        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    except Exception:
+                        pass  # Cloudflare challenge may cause timeout, continue anyway
                     await page.wait_for_timeout(5000)
                     
                     # 检查是否在 Cloudflare 验证页面
